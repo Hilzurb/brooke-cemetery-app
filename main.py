@@ -1,16 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, send_file
 import pandas as pd
 import os
+import requests
 
 app = Flask(__name__)
 CSV_FILE = 'cemetery_data.csv'
 PASSWORD_VIEW = 'Brooke'  
 PASSWORD_ADD = '26070'  
 
-def initialize_csv():
-    if not os.path.exists(CSV_FILE):
-        df = pd.DataFrame(columns=['Name', 'DOB', 'DOD', 'STONE', 'SECTION', 'LOT', 'NOTES', 'DIRECTION'])
-        df.to_csv(CSV_FILE, index=False)
+GITHUB_CSV_URL = GITHUB_CSV_URL = 'https://raw.githubusercontent.com/hilzurbuch/brooke-cemetery-app/main/cemetery_data.csv'
+
+def fetch_csv_from_github():
+    response = requests.get(GITHUB_CSV_URL)
+    if response.status_code == 200:
+        with open(CSV_FILE, 'w') as file:
+            file.write(response.text)
+        print("CSV fetched successfully from GitHub.")
+    else:
+        print(f"Failed to fetch CSV from GitHub (status code: {response.status_code})")
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -58,8 +65,8 @@ def home():
 
 @app.route('/search', methods=['POST'])
 def search():
-    query = request.form
     df = pd.read_csv(CSV_FILE)
+    query = request.form
     results = df.copy()
 
     for field in ['Name', 'DOB', 'SECTION', 'LOT']:
@@ -94,7 +101,5 @@ def download():
     return send_file(CSV_FILE, as_attachment=True)
 
 if __name__ == '__main__':
-    initialize_csv()
+    fetch_csv_from_github()
     app.run(host='0.0.0.0', port=81)
-
-
