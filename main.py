@@ -79,4 +79,5 @@ def add():
         'DOB': request.form['DOB'],
         'DOD': request.form['DOD'],
         'STONE': request.form['STONE'],
-        'SECTION': request.form['
+      'SECTION': request.form['SECTION'],
+
