@@ -79,5 +79,22 @@ def add():
         'DOB': request.form['DOB'],
         'DOD': request.form['DOD'],
         'STONE': request.form['STONE'],
-      'SECTION': request.form['SECTION'],
+        'SECTION': request.form['SECTION'],
+        'LOT': request.form['LOT'],
+        'NOTES': request.form['NOTES'],
+        'DIRECTION': request.form['DIRECTION']
+    }
+    df = pd.read_csv(CSV_FILE)
+    df = pd.concat([df, pd.DataFrame([new_entry])], ignore_index=True)
+    df.to_csv(CSV_FILE, index=False)
+    return redirect(url_for('home'))
+
+@app.route('/download')
+def download():
+    return send_file(CSV_FILE, as_attachment=True)
+
+if __name__ == '__main__':
+    initialize_csv()
+    app.run(host='0.0.0.0', port=81)
+
 
