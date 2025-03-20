@@ -1,4 +1,4 @@
-from flask import Flask, request, redirect, url_for, send_file
+from flask import Flask, request, redirect, url_for, send_file, render_template_string
 import pandas as pd
 import os
 import requests
@@ -10,7 +10,6 @@ PASSWORD_ADD = '26070'
 
 GITHUB_CSV_URL = 'https://raw.githubusercontent.com/hilzurbuch/brooke-cemetery-app/main/cemetery_data.csv'
 
-# Load the DataFrame at startup
 dataframe = pd.DataFrame()
 
 def fetch_csv_from_github():
@@ -20,13 +19,11 @@ def fetch_csv_from_github():
         response.raise_for_status()
         with open(CSV_FILE, 'w') as file:
             file.write(response.text)
-        print("✅ CSV fetched successfully from GitHub.")
         dataframe = pd.read_csv(CSV_FILE)
+        print("✅ CSV fetched successfully from GitHub.")
     except Exception as e:
-        print(f"⚠️ Error fetching CSV from GitHub: {e}")
-        if not os.path.exists(CSV_FILE):
-            dataframe = pd.DataFrame(columns=['Name', 'DOB', 'DOD', 'STONE', 'SECTION', 'LOT', 'NOTES', 'DIRECTION'])
-            dataframe.to_csv(CSV_FILE, index=False)
+        print(f"⚠️ Error fetching CSV: {e}")
+        dataframe = pd.DataFrame(columns=['Name', 'DOB', 'DOD', 'STONE', 'SECTION', 'LOT', 'NOTES', 'DIRECTION'])
 
 @app.route('/', methods=['GET', 'POST'])
 def login():
@@ -82,7 +79,15 @@ def search():
         if query[field]:
             results = results[results[field].astype(str).str.contains(query[field], case=False, na=False)]
 
-    return results.to_html()
+    results_html = results.head(50).to_html()
+
+    template = f"""
+    <h2>Search Results (Showing up to 50)</h2>
+    {results_html}
+    <br><a href="/home">Go Back</a>
+    """
+
+    return render_template_string(template)
 
 @app.route('/add', methods=['POST'])
 def add():
